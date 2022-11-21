@@ -1,5 +1,6 @@
 ﻿  using ETicaretAPI.Application.Repositories;
 using ETicaretAPI.Application.RequestParameters;
+using ETicaretAPI.Application.Services;
 using ETicaretAPI.Application.ViewModels.Products;
 using ETicaretAPI.Domain.Entities;
 using Microsoft.AspNetCore.Http;
@@ -15,13 +16,13 @@ namespace ETicaretAPI.API.Controllers
     {
         readonly private IProductWriteRepository _productWriteRepository;
         readonly private IProductReadRepository _productReadRepository;
-        readonly private IWebHostEnvironment _webHostEnvironment;
+        readonly private IFileService _fileService;
 
-        public ProductController(IProductWriteRepository productWriteRepository, IProductReadRepository productReadRepository ,IWebHostEnvironment webHostEnvironment)
+        public ProductController(IProductWriteRepository productWriteRepository, IProductReadRepository productReadRepository, IFileService fileService)
         {
             _productWriteRepository = productWriteRepository;
             _productReadRepository = productReadRepository;
-            _webHostEnvironment = webHostEnvironment;
+            _fileService = fileService;
         }
 
         [HttpGet]
@@ -88,20 +89,7 @@ namespace ETicaretAPI.API.Controllers
         [HttpPost ("[action]")]
         public async Task<IActionResult> Upload()
         {
-            string uploadPath = Path.Combine(_webHostEnvironment.WebRootPath, "resource/product-images");
-
-            if(!Directory.Exists(uploadPath)) Directory.CreateDirectory(uploadPath);
-
-            Random r = new Random();
-
-            foreach (IFormFile file in Request.Form.Files)
-            {
-                string fullPath = Path.Combine(uploadPath, $"{r.Next()}{Path.GetExtension(file.FileName)}");
-
-                using FileStream fileStream = new(fullPath, FileMode.Create, FileAccess.Write, FileShare.None, 1024 * 1024, useAsync: false);
-                await file.CopyToAsync(fileStream);
-                await fileStream.FlushAsync();
-            }
+            await _fileService.UploadAsync("resource/product-images", Request.Form.Files);
             return Ok();
             //Bugün bana dahi kim dersen alınmam. Orchi'ye lanet olsun istersen. Gökyüzü kahverengi sıcak bir yaz gününde, bu hayat kahperengi ücreti yok cebimde.
         }
