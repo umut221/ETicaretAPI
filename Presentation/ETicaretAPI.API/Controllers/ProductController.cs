@@ -17,12 +17,24 @@ namespace ETicaretAPI.API.Controllers
         readonly private IProductWriteRepository _productWriteRepository;
         readonly private IProductReadRepository _productReadRepository;
         readonly private IFileService _fileService;
+        readonly private IFileWriteRepository _fileWriteRepository;
+        readonly private IFileReadRepository _fileReadRepository;
+        readonly private IProductImageFilesWriteRepository _productImageFilesWriteRepository;
+        readonly private IProductImageFileReadRepository _productImageFileReadRepository;
+        readonly private IInvoiceFileReadRepository _invoiceFileReadRepository;
+        readonly private IInvoiceFileWriteRepository _invoiceFileWriteRepository;
 
-        public ProductController(IProductWriteRepository productWriteRepository, IProductReadRepository productReadRepository, IFileService fileService)
+        public ProductController(IProductWriteRepository productWriteRepository, IProductReadRepository productReadRepository, IFileService fileService, IFileWriteRepository fileWriteRepository, IFileReadRepository fileReadRepository, IProductImageFilesWriteRepository productImageFilesWriteRepository, IProductImageFileReadRepository productImageFileReadRepository, IInvoiceFileReadRepository invoiceFileReadRepository, IInvoiceFileWriteRepository invoiceFileWriteRepository)
         {
             _productWriteRepository = productWriteRepository;
             _productReadRepository = productReadRepository;
             _fileService = fileService;
+            _fileWriteRepository = fileWriteRepository;
+            _fileReadRepository = fileReadRepository;
+            _productImageFilesWriteRepository = productImageFilesWriteRepository;
+            _productImageFileReadRepository = productImageFileReadRepository;
+            _invoiceFileReadRepository = invoiceFileReadRepository;
+            _invoiceFileWriteRepository = invoiceFileWriteRepository;
         }
 
         [HttpGet]
@@ -89,9 +101,15 @@ namespace ETicaretAPI.API.Controllers
         [HttpPost ("[action]")]
         public async Task<IActionResult> Upload()
         {
-            await _fileService.UploadAsync("resource/product-images", Request.Form.Files);
+            var datas = await _fileService.UploadAsync("resource/product-images", Request.Form.Files);
+            await _productImageFilesWriteRepository.AddRangeAsync(datas.Select(d => new ProductImageFile()
+            {
+                FileName = d.fileName,
+                Path = d.path
+            }).ToList());
+            await _productImageFilesWriteRepository.SaveAsync();
             return Ok();
-            //Bugün bana dahi kim dersen alınmam. Orchi'ye lanet olsun istersen. Gökyüzü kahverengi sıcak bir yaz gününde, bu hayat kahperengi ücreti yok cebimde.
+            
         }
     }
 }
