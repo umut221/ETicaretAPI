@@ -1,11 +1,16 @@
 ﻿using ETicaretAPI.Infrastructure.Operations;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-
-namespace ETicaretAPI.Infrastructure.Services
+namespace ETicaretAPI.Infrastructure.Services.Storage
 {
-    public class FileService
+    public class Storage
     {
-        private async Task<string> FileRenameAsync(string path, string fileName, bool first = true)
+        protected delegate bool HasFile(string pathOrContainerName, string fileName);
+        protected async Task<string> FileRenameAsync(string pathOrContainerName, string fileName, HasFile hasFileMethod, bool first = true)
         {
             string newFileName = await Task.Run(async () =>
             {
@@ -56,8 +61,9 @@ namespace ETicaretAPI.Infrastructure.Services
                     }
                 }
 
-                if (File.Exists($"{path}\\{newFileName}"))
-                    return await FileRenameAsync(path, newFileName, false);
+                //if (File.Exists($"{path}\\{newFileName}"))
+                if (hasFileMethod(pathOrContainerName, newFileName))
+                    return await FileRenameAsync(pathOrContainerName, newFileName, hasFileMethod, false);
                 else
                     return newFileName;
 
@@ -66,4 +72,3 @@ namespace ETicaretAPI.Infrastructure.Services
         }
     }
 }
-
