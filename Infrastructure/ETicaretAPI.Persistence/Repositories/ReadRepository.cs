@@ -20,8 +20,6 @@ namespace ETicaretAPI.Persistence.Repositories
         }
         public DbSet<T> Table => _context.Set<T>();
 
-        System.Data.Entity.DbSet<T> IRepository<T>.Table => throw new NotImplementedException();
-
         public async Task<T> GetByIdAsync(string id, bool tracking = true)
         //=>await Table.FirstOrDefaultAsync(p => p.id==Guid.Parse(id));
         {

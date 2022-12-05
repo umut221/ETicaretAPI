@@ -21,8 +21,6 @@ namespace ETicaretAPI.Persistence.Repositories
         }
         public DbSet<T> Table => _context.Set<T>();
 
-        System.Data.Entity.DbSet<T> IRepository<T>.Table => throw new NotImplementedException();
-
         public async Task<bool> AddAsync(T model)
         {
            EntityEntry<T> entityEntry = await Table.AddAsync(model);
