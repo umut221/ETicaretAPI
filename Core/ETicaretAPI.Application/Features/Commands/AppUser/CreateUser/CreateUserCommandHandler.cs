@@ -1,4 +1,6 @@
-﻿using ETicaretAPI.Application.Exceptions;
+﻿using ETicaretAPI.Application.Abstractions.Services;
+using ETicaretAPI.Application.DTOs.User;
+using ETicaretAPI.Application.Exceptions;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 
@@ -6,31 +8,28 @@ namespace ETicaretAPI.Application.Features.Commands.AppUser.CreateUser
 {
     public class CreateUserCommandHandler : IRequestHandler<CreateUserCommandRequest, CreateUserCommandResponse>
     {
-        readonly private UserManager<Domain.Entities.Identity.AppUser> _userManager;
+        readonly private IUserService _userService;
 
-        public CreateUserCommandHandler(UserManager<Domain.Entities.Identity.AppUser> userManager)
+        public CreateUserCommandHandler(IUserService userService)
         {
-            _userManager = userManager;
+            _userService = userService;
         }
 
         public async Task<CreateUserCommandResponse> Handle(CreateUserCommandRequest request, CancellationToken cancellationToken)
         {
-            IdentityResult result = await _userManager.CreateAsync(new()
+                CreateUserResponse response = await _userService.CreateAsync(new()
             {
-                Id = Guid.NewGuid().ToString(),
-                UserName = request.Username,
+                Email = request.Email,
                 NameSurname = request.NameSurname,
-                Email = request.Email
-            }, request.Password);
-            CreateUserCommandResponse response = new() { Successed = result.Succeeded };
-            if (result.Succeeded)
-                response.Message = "User successfully created.";
-            else
-                foreach (var error in result.Errors)
-                {
-                    response.Message += $"{error.Description}\n";
-                }
-            return response;
+                Password = request.Password,
+                Username = request.Username,
+                PasswordRepeat = request.PasswordRepeat
+            });
+            return new()
+            {
+                Message = response.Message,
+                Successed = response.Successed,
+            };
         }
     }
 }
